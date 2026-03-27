@@ -30,17 +30,24 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
     // Direct members (Level 1 downline)
     const directMembers = await prisma.user.count({ where: { sponsorId: userId } });
 
-    // Total downline (all levels) - Optimized with Recursive CTE to prevent event-loop blocking
-    const [{ count }]: any = await prisma.$queryRaw`
-      WITH RECURSIVE downline AS (
-        SELECT id FROM "User" WHERE "sponsorId" = ${userId}
-        UNION ALL
-        SELECT u.id FROM "User" u
-        JOIN downline d ON u."sponsorId" = d.id
-      )
-      SELECT COUNT(*)::int as count FROM downline;
-    `;
-    const totalDownline = count || 0;
+    // Total downline (all levels) - Cached aggressively to prevent DB locks
+    const downlineCacheKey = `dashboard:downline:${userId}`;
+    let totalDownline = await getCache(downlineCacheKey);
+    
+    if (totalDownline === null || totalDownline === undefined) {
+      const [{ count }]: any = await prisma.$queryRaw`
+        WITH RECURSIVE downline AS (
+          SELECT id, 1 as depth FROM "User" WHERE "sponsorId" = ${userId}
+          UNION ALL
+          SELECT u.id, d.depth + 1 FROM "User" u
+          JOIN downline d ON u."sponsorId" = d.id
+          WHERE d.depth < 100
+        )
+        SELECT COUNT(*)::int as count FROM downline;
+      `;
+      totalDownline = count || 0;
+      await setCache(downlineCacheKey, totalDownline, 900); // Cache for 15 mins (rarely changes instantly)
+    }
 
     // Commissions
     const commGroups = await prisma.commissionLedger.groupBy({
