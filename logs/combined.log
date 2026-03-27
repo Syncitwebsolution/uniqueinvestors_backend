@@ -229,3 +229,6 @@
 {"level":"info","message":"[Cache Warmer] Warming Master Inventory Matrix...","timestamp":"2026-03-27 15:37:15"}
 {"level":"info","message":"[Server] SIGINT received. Shutting down gracefully...","timestamp":"2026-03-27 15:37:18"}
 {"level":"info","message":"[Server] Database disconnected. Goodbye.","timestamp":"2026-03-27 15:37:19"}
+{"level":"info","message":"[Cache Warmer] Inventory successfully injected into node-RAM.","timestamp":"2026-03-27 15:37:19"}
+{"level":"info","message":"[Server] SIGINT received. Shutting down gracefully...","timestamp":"2026-03-27 16:13:48"}
+{"level":"info","message":"[Server] Database disconnected. Goodbye.","timestamp":"2026-03-27 16:13:48"}
