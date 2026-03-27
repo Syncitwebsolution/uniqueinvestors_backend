@@ -1,3 +1,4 @@
+// Cache Warmer - Ensures system settings are pre-hydrated and stats are cached for performance
 import { prisma } from '../lib/prisma.js';
 import { setCache, invalidateCache } from '../lib/redis.js';
 import { logger } from './logger.js';
