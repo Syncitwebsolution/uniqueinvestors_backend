@@ -28,13 +28,13 @@ export const distributeCommissions = async (agentId: string, transactionAmount: 
   // Fetch all needed users in a single query by walking the chain
   // We need at most commissionPlan.length users in the chain
   for (let i = 0; i < commissionPlan.length && currentId; i++) {
-    const user = await prisma.user.findUnique({
-      where: { id: currentId },
+    const nodeUser: { id: string; sponsorId: string | null } | null = await prisma.user.findUnique({
+      where: { id: currentId as string },
       select: { id: true, sponsorId: true },
     });
-    if (!user) break;
-    chainUsers.push(user);
-    currentId = user.sponsorId;
+    if (!nodeUser) break;
+    chainUsers.push(nodeUser);
+    currentId = nodeUser.sponsorId;
   }
 
   // Batch-create all commission entries at once
