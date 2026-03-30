@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import { logAudit } from '../../utils/auditLogger.js';
 import { logger } from '../../utils/logger.js';
 import { getCache, setCache, invalidateCache } from '../../lib/redis.js';
+import { sendWelcomeEmail, sendWelcomeSMS } from '../../utils/notification.js';
 
 const baseUserSchema = z.object({
   name: z.string().trim().min(2),
@@ -222,6 +223,12 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
       select: userSelect,
     });
 
+    // Asynchronously dispatch notifications so we don't block the API response
+    Promise.allSettled([
+      payload.email ? sendWelcomeEmail(payload.email, payload.name, user.userId, payload.password) : Promise.resolve(),
+      sendWelcomeSMS(payload.mobile, payload.name)
+    ]).catch(err => logger.error('[Auth/CreateUser] Failed to dispatch notifications:', err));
+
     // For admin-created users, we don't log them in immediately (no cookie/token needed for current session)
     res.status(201).json(user);
   } catch (error) {
@@ -429,7 +436,7 @@ export const adminResetPassword = async (req: AuthRequest, res: Response): Promi
   try {
     const id = req.params.id as string;
     const { newPassword } = z.object({ newPassword: z.string().min(6) }).parse(req.body);
-    
+
     await prisma.user.update({
       where: { id },
       data: { password: await hashPassword(newPassword) },

@@ -1,14 +1,14 @@
 import express from 'express';
-import { 
-  createUser, 
-  getAllUsers, 
-  getProfile, 
-  login, 
-  register, 
-  updateUser, 
-  updateUserStatus, 
-  changePassword, 
-  updateProfile, 
+import {
+  createUser,
+  getAllUsers,
+  getProfile,
+  login,
+  register,
+  updateUser,
+  updateUserStatus,
+  changePassword,
+  updateProfile,
   adminResetPassword,
   refresh,
   logout

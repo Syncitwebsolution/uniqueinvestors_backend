@@ -13,6 +13,13 @@ const envSchema = z.object({
   CLIENT_URL: z.string().optional(),
   REDIS_URL: z.string().optional(),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  // Notification Configs
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM_EMAIL: z.string().email().optional(),
+  SMS_API_KEY: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
