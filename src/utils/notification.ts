@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import twilio from 'twilio';
 import { env } from '../config/env.js';
 import { logger } from './logger.js';
 
@@ -58,42 +59,67 @@ export const sendWelcomeEmail = async (toEmail: string, name: string, userId: st
 };
 
 /**
- * Send a welcome SMS. Uses a mock logger if real API is not configured.
+ * Send a welcome SMS. Tries Twilio first, falls back to Fast2SMS, logs mock if neither configured.
  * @param mobile - The mobile number
  * @param name - First name of the user
  */
 export const sendWelcomeSMS = async (mobile: string, name: string): Promise<boolean> => {
   const messageBody = `Welcome ${name}! You have been registered on Unique Investors. Your joining details have been sent to your email. Please login using your portal ID.`;
 
-  if (!env.SMS_API_KEY) {
-    logger.warn(`[Notification] SMS_API_KEY is missing. MOCK SMS SENT.
+  try {
+    // 1. Try Twilio if configured
+    if (env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_PHONE_NUMBER) {
+      const client = twilio(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN);
+      
+      // Ensure mobile has country code for Twilio. Simple formatting assuming India if 10 digits.
+      let toMobile = mobile;
+      if (toMobile.length === 10) {
+        toMobile = `+91${toMobile}`;
+      } else if (!toMobile.startsWith('+')) {
+        toMobile = `+${toMobile}`;
+      }
+
+      await client.messages.create({
+        body: messageBody,
+        from: env.TWILIO_PHONE_NUMBER,
+        to: toMobile
+      });
+
+      logger.info(`[Notification] Welcome SMS successfully dispatched to ${toMobile} via Twilio.`);
+      return true;
+    }
+
+    // 2. Try Fast2SMS if Twilio not configured but Fast2SMS is
+    if (env.SMS_API_KEY && env.SMS_API_KEY.trim() !== "") {
+      const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+        method: 'POST',
+        headers: {
+          'authorization': env.SMS_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          route: 'q',
+          message: messageBody,
+          numbers: mobile,
+          flash: 0
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.return) {
+        throw new Error(data.message || 'Fast2SMS API rejected the request');
+      }
+
+      logger.info(`[Notification] Welcome SMS successfully dispatched to ${mobile} via Fast2SMS.`);
+      return true;
+    }
+
+    // 3. Fallback to Mock SMS if neither API is configured
+    logger.warn(`[Notification] No SMS API configured. MOCK SMS SENT.
     To: ${mobile}
     Message: ${messageBody}`);
     return true;
-  }
 
-  try {
-    const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
-      method: 'POST',
-      headers: {
-        'authorization': env.SMS_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        route: 'q',
-        message: messageBody,
-        numbers: mobile,
-        flash: 0
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok || !data.return) {
-      throw new Error(data.message || 'SMS API rejected the request');
-    }
-
-    logger.info(`[Notification] Welcome SMS successfully dispatched to ${mobile} via Fast2SMS.`);
-    return true;
   } catch (error) {
     logger.error(`[Notification] Failed to send SMS to ${mobile}:`, error);
     return false;
