@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String             @id @default(uuid())
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
   userId        String             @unique
   email         String?            @unique
   password      String
@@ -18,7 +18,7 @@ model User {
   role          UserRole           @default(AGENT)
   status        UserStatus         @default(ACTIVE)
   rank          String             @default("Associate")
-  sponsorId     String?
+  sponsorId     String?            @db.ObjectId
   joiningDate   DateTime           @default(now())
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
@@ -31,7 +31,7 @@ model User {
   refreshTokens RefreshToken[]
   commissions   CommissionLedger[]
   sales         Sale[]             @relation("AgentSales")
-  sponsor       User?              @relation("SponsorNetwork", fields: [sponsorId], references: [id])
+  sponsor       User?              @relation("SponsorNetwork", fields: [sponsorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   downline      User[]             @relation("SponsorNetwork")
 
   @@index([sponsorId])
@@ -40,7 +40,7 @@ model User {
 }
 
 model Project {
-  id               String   @id @default(uuid())
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
   projectNo        String   @unique
   name             String
   directCommission Float?   // Optional custom commission % for direct sales (Level 1)
@@ -50,9 +50,9 @@ model Project {
 }
 
 model Block {
-  id         String     @id @default(uuid())
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
   name       String
-  projectId  String
+  projectId  String     @db.ObjectId
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -62,7 +62,7 @@ model Block {
 }
 
 model Property {
-  id            String         @id @default(uuid())
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
   propertyNo    String         @unique
   type          PropertyType
   sizeSqYards   Float
@@ -71,7 +71,7 @@ model Property {
   totalAmount   Float
   dimension     String?
   status        PropertyStatus @default(PENDING)
-  blockId       String
+  blockId       String         @db.ObjectId
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   block         Block          @relation(fields: [blockId], references: [id], onDelete: Cascade)
@@ -82,10 +82,10 @@ model Property {
 }
 
 model Sale {
-  id          String   @id @default(uuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   receiptNo   String   @unique
-  propertyId  String
-  agentId     String
+  propertyId  String   @db.ObjectId
+  agentId     String   @db.ObjectId
   totalAmount Float
   paidAmount  Float    @default(0)
   saleDate    DateTime @default(now())
@@ -101,8 +101,8 @@ model Sale {
 }
 
 model EMI {
-  id          String    @id @default(uuid())
-  saleId      String
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  saleId      String    @db.ObjectId
   amount      Float
   paymentDate DateTime?
   status      EmiStatus @default(PENDING)
@@ -114,8 +114,8 @@ model EMI {
 }
 
 model CommissionLedger {
-  id          String       @id @default(uuid())
-  userId      String
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
   amount      Float
   incomeType  String
   paymentMode String?
@@ -131,7 +131,7 @@ model CommissionLedger {
 }
 
 model CompanySettings {
-  id             String   @id @default(cuid())
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   companyName    String
   registrationNo String?
   address        String?
@@ -142,7 +142,7 @@ model CompanySettings {
 }
 
 model CommissionSetting {
-  id         String   @id @default(cuid())
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
   level      Int      @unique
   label      String
   percentage Float
@@ -152,21 +152,21 @@ model CommissionSetting {
 }
 
 model Award {
-  id          String   @id @default(uuid())
-  userId      String
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
   title       String
   description String?
   awardedOn   DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  user        User     @relation("UserAwards", fields: [userId], references: [id], onDelete: Cascade)
+  user        User     @relation("UserAwards", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   expiresAt DateTime
   createdAt DateTime @default(now())
 
@@ -174,8 +174,8 @@ model RefreshToken {
 }
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String?
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String?  @db.ObjectId
   action     String
   resource   String
   resourceId String?
@@ -188,7 +188,7 @@ model AuditLog {
 }
 
 model IdempotencyRecord {
-  key       String   @id
+  key       String   @id @map("_id")
   payload   Json?
   createdAt DateTime @default(now())
 }
