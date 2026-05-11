@@ -50,10 +50,10 @@ async function seedDistributeCommissions(agentId: string, transactionAmount: num
 
 async function seedSettings() {
   await prisma.companySettings.upsert({
-    where: { id: 'company-settings-default' },
+    where: { id: '663f539b97727183e8000001' },
     update: {},
     create: {
-      id: 'company-settings-default',
+      id: '663f539b97727183e8000001',
       companyName: 'Unique Investors Pvt. Ltd.',
       registrationNo: 'U70100DL2026PTC000000',
       address: '102, Dream Plaza, Highway Road, Delhi - 110001',

@@ -57,7 +57,15 @@ const authLimiter = rateLimit({
 // Security & Parsing Middleware
 app.use(helmet({ contentSecurityPolicy: false })); // CSP disabled for API-only server
 app.use(cors({
-  origin: true, // Always reflect request origin instead of wildcard array, since credentials: true forbids '*'
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.indexOf('*') !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(compression());

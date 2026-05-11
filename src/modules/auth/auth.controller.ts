@@ -245,15 +245,21 @@ export const createUser = async (req: AuthRequest, res: Response): Promise<void>
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, password } = loginSchema.parse(req.body);
+    console.log(`[Debug] Login attempt for userId: "${userId}"`);
+    
     const user = await prisma.user.findUnique({ where: { userId } });
 
     if (!user) {
+      console.log(`[Debug] User not found: "${userId}"`);
       res.status(401).json({ message: 'Invalid login credentials' });
       return;
     }
 
+    console.log(`[Debug] User found: ${user.userId}, checking password...`);
     const isMatch = await comparePassword(password, user.password);
+    
     if (!isMatch) {
+      console.log(`[Debug] Password mismatch for user: "${userId}"`);
       res.status(401).json({ message: 'Invalid login credentials' });
       return;
     }
