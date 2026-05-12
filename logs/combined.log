@@ -387,3 +387,21 @@
 {"level":"info","message":"[Cache Warmer] Active! Admin Dashboard cached in RAM.","timestamp":"2026-05-11 18:32:10"}
 {"level":"info","message":"[Cache Warmer] Warming Master Inventory Matrix...","timestamp":"2026-05-11 18:32:10"}
 {"level":"info","message":"[Cache Warmer] Inventory successfully injected into node-RAM.","timestamp":"2026-05-11 18:32:11"}
+{"level":"info","message":"[Server] SIGINT received. Shutting down gracefully...","timestamp":"2026-05-12 12:15:46"}
+{"level":"info","message":"[Server] Database disconnected. Goodbye.","timestamp":"2026-05-12 12:15:46"}
+{"level":"info","message":"[Cache] No REDIS_URL found. Using native Node.js Memory Cache fallback.","timestamp":"2026-05-12 12:15:50"}
+{"level":"info","message":"[Worker] No REDIS_URL found. MLM Background Worker not started.","timestamp":"2026-05-12 12:15:51"}
+{"level":"info","message":"[Server] Unique Investors API running on http://localhost:5005","timestamp":"2026-05-12 12:15:51"}
+{"level":"info","message":"[Cache Warmer] Booting up cache pre-hydration routine...","timestamp":"2026-05-12 12:15:51"}
+{"level":"info","message":"[Cache Warmer] Warming Admin Dashboard Stats...","timestamp":"2026-05-12 12:15:51"}
+{"level":"info","message":"[Cache Warmer] Active! Admin Dashboard cached in RAM.","timestamp":"2026-05-12 12:15:51"}
+{"level":"info","message":"[Cache Warmer] Warming Master Inventory Matrix...","timestamp":"2026-05-12 12:15:51"}
+{"level":"info","message":"[Cache Warmer] Inventory successfully injected into node-RAM.","timestamp":"2026-05-12 12:15:51"}
+{"level":"info","message":"[Cache] No REDIS_URL found. Using native Node.js Memory Cache fallback.","timestamp":"2026-05-12 12:23:37"}
+{"level":"info","message":"[Worker] No REDIS_URL found. MLM Background Worker not started.","timestamp":"2026-05-12 12:23:37"}
+{"level":"info","message":"[Server] Unique Investors API running on http://localhost:5005","timestamp":"2026-05-12 12:23:37"}
+{"level":"info","message":"[Cache Warmer] Booting up cache pre-hydration routine...","timestamp":"2026-05-12 12:23:37"}
+{"level":"info","message":"[Cache Warmer] Warming Admin Dashboard Stats...","timestamp":"2026-05-12 12:23:38"}
+{"level":"info","message":"[Cache Warmer] Active! Admin Dashboard cached in RAM.","timestamp":"2026-05-12 12:23:38"}
+{"level":"info","message":"[Cache Warmer] Warming Master Inventory Matrix...","timestamp":"2026-05-12 12:23:38"}
+{"level":"info","message":"[Cache Warmer] Inventory successfully injected into node-RAM.","timestamp":"2026-05-12 12:23:38"}

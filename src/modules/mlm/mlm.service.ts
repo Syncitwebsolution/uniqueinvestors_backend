@@ -20,17 +20,20 @@ export const getActiveCommissionPlan = async () => {
 export const distributeCommissions = async (agentId: string, transactionAmount: number, receiptNo: string, customDirectCommission?: number | null): Promise<void> => {
   const commissionPlan = await getActiveCommissionPlan();
 
-  // Fetch the entire sponsor chain in ONE query using a Recursive CTE
-  const chainUsers: { id: string; sponsorId: string | null }[] = await prisma.$queryRaw`
-    WITH RECURSIVE sponsors AS (
-      SELECT id, "sponsorId", 0 as level FROM "User" WHERE id = ${agentId}
-      UNION ALL
-      SELECT u.id, u."sponsorId", s.level + 1 FROM "User" u
-      JOIN sponsors s ON u.id = s."sponsorId"
-      WHERE s.level < ${commissionPlan.length - 1}
-    )
-    SELECT id, "sponsorId" FROM sponsors ORDER BY level ASC;
-  `;
+  // Fetch the sponsor chain iteratively (MongoDB compatible)
+  const chainUsers: { id: string; sponsorId: string | null }[] = [];
+  let currentId: string | null = agentId;
+  
+  for (let i = 0; i < commissionPlan.length; i++) {
+    if (!currentId) break;
+    const user = await prisma.user.findUnique({
+      where: { id: currentId },
+      select: { id: true, sponsorId: true }
+    });
+    if (!user) break;
+    chainUsers.push(user);
+    currentId = user.sponsorId;
+  }
 
   // Batch-create all commission entries at once
   const commissionsToCreate = [];

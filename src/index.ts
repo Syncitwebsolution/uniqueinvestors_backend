@@ -86,7 +86,7 @@ app.use('/api/settings', settingsRoutes);
 // API Health Check
 app.get('/api/health', async (_req: Request, res: Response) => {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await prisma.user.findFirst({ select: { id: true } });
     res.status(200).json({
       status: 'Operational',
       database: 'Connected',

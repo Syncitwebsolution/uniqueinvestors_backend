@@ -35,17 +35,30 @@ export const getStats = async (req: AuthRequest, res: Response): Promise<void> =
     let totalDownline = await getCache(downlineCacheKey);
     
     if (totalDownline === null || totalDownline === undefined) {
-      const [{ count }]: any = await prisma.$queryRaw`
-        WITH RECURSIVE downline AS (
-          SELECT id, 1 as depth FROM "User" WHERE "sponsorId" = ${userId}
-          UNION ALL
-          SELECT u.id, d.depth + 1 FROM "User" u
-          JOIN downline d ON u."sponsorId" = d.id
-          WHERE d.depth < 100
-        )
-        SELECT COUNT(*)::int as count FROM downline;
-      `;
-      totalDownline = count || 0;
+      const getDownlineCount = async (userId: string): Promise<number> => {
+        let count = 0;
+        let queue = [userId];
+        let processed = new Set();
+        
+        while (queue.length > 0) {
+          const currentId = queue.shift()!;
+          if (processed.has(currentId)) continue;
+          processed.add(currentId);
+          
+          const children = await prisma.user.findMany({
+            where: { sponsorId: currentId },
+            select: { id: true }
+          });
+          
+          count += children.length;
+          queue.push(...children.map(c => c.id));
+          
+          // Safety break to prevent infinite loops if there's a cycle
+          if (processed.size > 5000) break; 
+        }
+        return count;
+      };
+      totalDownline = await getDownlineCount(userId);
       await setCache(downlineCacheKey, totalDownline, 900); // Cache for 15 mins (rarely changes instantly)
     }
 
